@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>W4-TodoList</title>
+ <!-- <script src="https://unpkg.com/vue@next"></script> 整包用法-->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+</head>
+<body class="bg-info">
+  <div id="app"> 
+    <div class="container mt-5">
+      <div class="row justify-content-center">
+        <div class="col-8">
+          <div class="card shadow" style="border: none;">
+            <h1 class="card-header text-center text-white bg-dark">TodoList</h1>
+            <div class="card-body">
+              <div class="input-group mb-3">
+                <input type="text" class="form-control" placeholder="輸入代辦事項" v-model.trim="newTodo" @keyup.enter="addTodo">
+                <button class="btn btn-warning" type="button" @click="addTodo">新增</button>
+              </div>
+              <hr>
+              <div class="selector d-flex justify-content-between">
+              <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link text-dark"
+                    :class="{active: filter === 'all', 'bg-warning' : filter === 'all'}"
+                    @click="filter = 'all'"
+                  >
+                  全部
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link text-dark"
+                    :class="{active: filter === 'completed', 'bg-warning' : filter === 'completed'}"
+                    @click="filter = 'completed'"
+                  >
+                  已完成
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link text-dark"
+                    :class="{active: filter === 'uncompleted' , 'bg-warning' : filter === 'uncompleted'}"
+                    @click="filter = 'uncompleted'"
+                  >
+                  未完成
+                  </button>
+                </li>
+              </ul>
+              <div>
+              <button type="button" class="btn btn-outline-danger" @click="clearAll">清除全部事項</button>
+            </div>
+            </div>
+              <ul class="todolist list-group list-group-flush">
+                <li v-for="item in filterTodo" :key="item.id" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                  <!-- 編輯畫面 -->
+                  <div v-if="temp.id === item.id">
+                    <input type="text" v-model="item.todo" class="item-input"  @keyup.enter="doneEdit(item)">
+                  </div>
+                  <!-- 未編輯畫面 -->
+                  <div v-else class="form-check">
+                    <input class="form-check-input" type="checkbox" @click="doneTodo(item)" :id="item.id" :checked = "item.isCompleted">
+                    <label class="form-check-label" :for="item.id" :class="{'text-decoration-line-through': item.isCompleted,'text-black-50': item.isCompleted}">
+                      {{item.todo}}
+                    </label>
+                  </div>
+                  <div>
+                    <button v-if="temp.id === item.id" type="button" class="btn btn-warning me-2" @click="doneEdit(item)"><i class="bi bi-check-square-fill"></i>
+                    </button>
+                    <button v-else type="button" class="btn btn-warning me-2" @click="editTodo(item)" ><i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button type="button" class="btn btn-warning" @click="deleteTodo(item.id)"><i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+
+
+<!--使用Vue.js ESModule固定手法: script + tyoe="module"-->
+<!--單一模組使用時機: Vue Cli , composition API -->
+  <script type="module"> 
+    import { createApp , ref , computed , onMounted } from 'https://cdnjs.cloudflare.com/ajax/libs/vue/3.1.4/vue.esm-browser.min.js';
+
+    const app = createApp({
+      setup(){
+        const filter = ref('all');
+        const todoList = ref([]);
+        const newTodo = ref('');
+        const temp = ref('');
+
+        function addTodo(){ //新增待辦事項
+          if(!newTodo.value){
+            return;
+          }
+          todoList.value.push({
+            id: Date.now(),
+            todo: newTodo.value,
+            isCompleted: false,
+          })
+          newTodo.value = '';
+          //存入localStorage
+          localStorage.setItem('todoList', JSON.stringify(todoList.value));
+        }
+
+        function doneTodo(item){
+          const index = todoList.value.findIndex(item => item.id === item);
+          item.isCompleted = !item.isCompleted;
+          //存入localStorage
+          localStorage.setItem('todoList', JSON.stringify(todoList.value));
+        }
+
+        function editTodo(item){ //修改待辦事項
+          temp.value = { ...item };
+        }
+
+        function doneEdit(item){
+          const index = todoList.value.findIndex(item => item.id === item);
+          todoList.value[index] = temp.value;
+          temp.value = '';
+          //存入localStorage
+          localStorage.setItem('todoList', JSON.stringify(todoList.value));
+        }
+
+        function deleteTodo(id){ //刪除單一待辦事項
+          const index = todoList.value.findIndex(item => item.id === id);
+          todoList.value.splice(index , 1);
+          localStorage.setItem('todoList', JSON.stringify(todoList.value));
+        }
+
+        function clearAll(){ //清除全部事項
+          todoList.value = [];
+          localStorage.clear();
+        }
+
+        const filterTodo = computed(() => {
+          switch(filter.value){
+            case 'uncompleted':
+              return todoList.value.filter(item => !item.isCompleted);
+              break;
+            case 'completed':
+              return todoList.value.filter(item => item.isCompleted);
+              break;
+            default:
+              return todoList.value;
+          }
+        });
+
+
+        onMounted(() =>{
+          todoList.value = JSON.parse(localStorage.getItem('todoList')) || [];
+        })
+
+        return{
+          filter,
+          todoList,
+          newTodo,
+          temp,
+
+          addTodo,
+          doneTodo,
+          editTodo,
+          doneEdit,
+          deleteTodo,
+          clearAll,
+          filterTodo
+        }
+      }
+    })
+    app.mount('#app')
+    </script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-p34f1UUtsS3wqzfto5wAAmdvj+osOnFyQFpp4Ua3gs/ZVWx6oOypYoCJhGGScy+8" crossorigin="anonymous"></script> -->
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.9.1/axios.min.js'
+          integrity='sha512-Xk3wWei2TGrsh9kDSBKUMIjw/86sLUvhtnv9f7fOuIwhhiUTKz8szkWkzHthrM5Bb3Bu9idSzkxOrkzhcneuiw=='
+          crossorigin='anonymous'></script>
+</body>
+</html>
