@@ -19,7 +19,7 @@
             <div class="card-body">
               <div class="input-group mb-3">
                 <input type="text" class="form-control" placeholder="輸入代辦事項" v-model.trim="newTodo" @keyup.enter="addTodo">
-                <button class="btn btn-warning" type="button" @click="addTodo">新增</button>
+                <button class="btn btn-warning" type="button" @click="addTodo">Add</button>
               </div>
               <hr>
               <div class="selector d-flex justify-content-between">
@@ -30,7 +30,7 @@
                     :class="{active: filter === 'all', 'bg-warning' : filter === 'all'}"
                     @click="filter = 'all'"
                   >
-                  全部
+                  All
                   </button>
                 </li>
                 <li class="nav-item" role="presentation">
@@ -39,7 +39,7 @@
                     :class="{active: filter === 'completed', 'bg-warning' : filter === 'completed'}"
                     @click="filter = 'completed'"
                   >
-                  已完成
+                  Completed
                   </button>
                 </li>
                 <li class="nav-item" role="presentation">
@@ -48,12 +48,12 @@
                     :class="{active: filter === 'uncompleted' , 'bg-warning' : filter === 'uncompleted'}"
                     @click="filter = 'uncompleted'"
                   >
-                  未完成
+                  Pending
                   </button>
                 </li>
               </ul>
               <div>
-              <button type="button" class="btn btn-outline-danger" @click="clearAll">清除全部事項</button>
+              <button type="button" class="btn btn-outline-danger" @click="clearAll">Clear all</button>
             </div>
             </div>
               <ul class="todolist list-group list-group-flush">
